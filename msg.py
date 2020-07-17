@@ -3,6 +3,7 @@ import threading
 import json
 from os import system
 import hashlib
+from io import StringIO
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.bind(('0.0.0.0', 8889))
@@ -45,7 +46,10 @@ connections = []
 def handler(c, a):
     while True:
         data    = c.recv(2048)
-        rec_msg = json.load(StringIO(str(data.decode('utf-8'))))
+        rec_msg = json.load(StringIO(str(data.decode('utf-8')).lower()))
+        print(str(data.decode('utf-8')).lower())
+        print(rec_msg)
+        print(rec_msg.con_hash)
 
         if rec_msg.isReg == True:
             reg_msg = json.load(StringIO(rec_msg.msg))
@@ -67,5 +71,6 @@ while True:
     ct = threading.Thread(target=handler, args=(c,a))
     ct.daemon = True
     ct.start()
-    connections.append(Connection(c, hashlib.md5(str(c.getpeername()).encode()).hexdigest()), '')
+    con_hash = hashlib.md5(str(c.getsockname()).encode()).hexdigest()
+    connections.append(Connection(c, con_hash, ' ', ' '))
     print("New connection with: %s" % c)
